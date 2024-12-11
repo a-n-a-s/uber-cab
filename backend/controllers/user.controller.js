@@ -25,30 +25,18 @@ module.exports.registerUser = async (req, res, next) => {
     email,
     password: hashPassword,
   });
+  console.log(user.$ignore);
+  const token = user.generateAuthToken();
 
-  const token = userModel.generateAuthToken();
-  token
-    .then((token) => {
-      res.status(201).json({
-        message: "User registered successfully",
-        user: {
-          id: user.id,
-          firstname: user.fullname.firstname,
-          lastname: user.fullname.lastname,
-          email: user.email,
-        },
-        token: token,
-      });
-    })
-    .catch((error) => {
-      // Handle error, e.g., send an error response
-      res.status(500).json({ error: "Token generation failed" });
-    });
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV == "production",
-    maxAge: 3600000,
+  res.status(201).json({
+    message: "User registered successfully",
+    user: {
+      id: user.id,
+      firstname: user.fullname.firstname,
+      lastname: user.fullname.lastname,
+      email: user.email,
+    },
+    token: token,
   });
 };
 
@@ -66,20 +54,19 @@ module.exports.loginUser = async (req, res, next) => {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const isMatch = await userModel.comparePassword(user.password, password);
+  const isMatch = await user.comparePassword(user.password, password);
 
   if (!isMatch) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const token = userModel.generateAuthToken();
+  const token = user.generateAuthToken();
 
+  res.cookie("token", token);
   res.status(200).json({
     user,
     token,
   });
-
-  //res.cookie("token", token);
 };
 
 module.exports.getUserProfile = async (req, res, next) => {

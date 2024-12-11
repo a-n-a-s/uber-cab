@@ -31,14 +31,14 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.statics.generateAuthToken =  function () {
+userSchema.methods.generateAuthToken =  function () {
   const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
   console.log(this._id)
   return token;
 };
-userSchema.statics.comparePassword = async function (user_password, password) {
+userSchema.methods.comparePassword = async function (user_password, password) {
   return await bcrypt.compare(password, user_password);
 };
 
